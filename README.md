@@ -1,3 +1,3 @@
 # awsipranges
 
-Helpers for working with AWS IP range data.
+Helpers for working with public AWS IP range data.
