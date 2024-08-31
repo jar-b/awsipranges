@@ -3,7 +3,9 @@ package awsipranges
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"os"
 )
 
@@ -42,18 +44,33 @@ func NewFromFile(f string) (*AWSIPRanges, error) {
 		return nil, err
 	}
 
-	var ranges *AWSIPRanges
-	if err := json.Unmarshal(b, ranges); err != nil {
+	var ranges AWSIPRanges
+	if err := json.Unmarshal(b, &ranges); err != nil {
 		return nil, err
 	}
 
-	return ranges, nil
+	return &ranges, nil
 }
 
 // New fetches the latest `ip-ranges.json` file and parses it
 func New() (*AWSIPRanges, error) {
-	// TODO
-	return &AWSIPRanges{}, nil
+	resp, err := http.Get(ipRangesURL)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var ranges AWSIPRanges
+	if err := json.Unmarshal(b, &ranges); err != nil {
+		return nil, err
+	}
+
+	return &ranges, nil
 }
 
 func (a *AWSIPRanges) Contains(ip net.IP) (*Prefix, error) {
