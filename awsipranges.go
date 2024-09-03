@@ -22,7 +22,6 @@ type AWSIPRanges struct {
 }
 
 type Prefix struct {
-	IPNet              net.IPNet
 	IPPrefix           string `json:"ip_prefix"`
 	Region             string `json:"region"`
 	NetworkBorderGroup string `json:"network_border_group"`
@@ -30,7 +29,6 @@ type Prefix struct {
 }
 
 type IPV6Prefix struct {
-	IPV6Net            net.IPNet
 	IPV6Prefix         string `json:"ipv6_prefix"`
 	Region             string `json:"region"`
 	NetworkBorderGroup string `json:"network_border_group"`
@@ -75,7 +73,11 @@ func New() (*AWSIPRanges, error) {
 
 func (a *AWSIPRanges) Contains(ip net.IP) (*Prefix, error) {
 	for _, p := range a.Prefixes {
-		if p.IPNet.Contains(ip) {
+		_, ipNet, err := net.ParseCIDR(p.IPPrefix)
+		if err != nil {
+			return nil, err
+		}
+		if ipNet.Contains(ip) {
 			return &p, nil
 		}
 	}
