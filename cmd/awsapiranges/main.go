@@ -65,11 +65,11 @@ func main() {
 	switch arg1 {
 	case downloadCmd.Name():
 		if err := download(); err != nil {
-			log.Fatalf("download: %w", err)
+			log.Fatalf("download: %s", err)
 		}
 	case containsCmd.Name():
 		if err := contains(ip); err != nil {
-			log.Fatalf("download: %w", err)
+			log.Fatalf("contains: %s", err)
 		}
 	default:
 		log.Fatalf("subcommand not implemented '%s'", arg1)
@@ -77,8 +77,12 @@ func main() {
 }
 
 func download() error {
-	// TODO: implement
-	return nil
+	b, err := awsipranges.Get()
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(cachefile, b, 0644)
 }
 
 func contains(s string) error {

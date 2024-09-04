@@ -1,33 +1,52 @@
 package awsipranges
 
 import (
+	"encoding/json"
 	"net"
+	"os"
 	"reflect"
 	"testing"
 )
+
+// newFromFile reads the provided file and parses it
+func newFromFile(f string) (*AWSIPRanges, error) {
+	b, err := os.ReadFile(f)
+	if err != nil {
+		return nil, err
+	}
+
+	var ranges AWSIPRanges
+	if err := json.Unmarshal(b, &ranges); err != nil {
+		return nil, err
+	}
+
+	return &ranges, nil
+}
 
 func TestAWSIPRanges_Contains(t *testing.T) {
 	tests := []struct {
 		name    string
 		ip      net.IP
-		want    *Prefix
+		want    []Prefix
 		wantErr bool
 	}{
 		{"empty", net.ParseIP(""), nil, true},
 		{"non-aws", net.ParseIP("1.1.1.1"), nil, true},
 		{"aws", net.ParseIP("3.4.12.4"),
-			&Prefix{
-				IPPrefix:           "3.4.12.4/32",
-				Region:             "eu-west-1",
-				Service:            "AMAZON",
-				NetworkBorderGroup: "eu-west-1",
+			[]Prefix{
+				{
+					IPPrefix:           "3.4.12.4/32",
+					Region:             "eu-west-1",
+					Service:            "AMAZON",
+					NetworkBorderGroup: "eu-west-1",
+				},
 			},
 			false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := NewFromFile("testdata/ip-ranges-20240902.json")
+			a, err := newFromFile("testdata/ip-ranges-20240902.json")
 			if err != nil {
 				t.Fatalf("reading testdata: %v", err)
 			}

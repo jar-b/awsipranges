@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 )
 
 const ipRangesURL = "https://ip-ranges.amazonaws.com/ip-ranges.json"
@@ -21,6 +20,7 @@ type AWSIPRanges struct {
 	IPV6Prefixes []IPV6Prefix `json:"ipv6_prefixes"`
 }
 
+// Prefix represents a single entry in the prefixes list
 type Prefix struct {
 	IPPrefix           string `json:"ip_prefix"`
 	Region             string `json:"region"`
@@ -28,6 +28,7 @@ type Prefix struct {
 	Service            string `json:"service"`
 }
 
+// IPV6Prefix represents a single entry in the ipv6_prefixes list
 type IPV6Prefix struct {
 	IPV6Prefix         string `json:"ipv6_prefix"`
 	Region             string `json:"region"`
@@ -35,30 +36,20 @@ type IPV6Prefix struct {
 	Service            string `json:"service"`
 }
 
-// NewFromFile reads the provided file and parses it
-func NewFromFile(f string) (*AWSIPRanges, error) {
-	b, err := os.ReadFile(f)
-	if err != nil {
-		return nil, err
-	}
-
-	var ranges AWSIPRanges
-	if err := json.Unmarshal(b, &ranges); err != nil {
-		return nil, err
-	}
-
-	return &ranges, nil
-}
-
-// New fetches the latest `ip-ranges.json` file and parses it
-func New() (*AWSIPRanges, error) {
+// Get fetches the latest `ip-ranges.json` file
+func Get() ([]byte, error) {
 	resp, err := http.Get(ipRangesURL)
 	if err != nil {
 		return nil, err
 	}
 
 	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
+}
+
+// New fetches the latest `ip-ranges.json` file and parses it
+func New() (*AWSIPRanges, error) {
+	b, err := Get()
 	if err != nil {
 		return nil, err
 	}
@@ -71,18 +62,26 @@ func New() (*AWSIPRanges, error) {
 	return &ranges, nil
 }
 
-func (a *AWSIPRanges) Contains(ip net.IP) (*Prefix, error) {
+// Contains returns all prefix entries which contain the provided IP
+//
+// Multiple entries in the source data set may match a single IP.
+func (a *AWSIPRanges) Contains(ip net.IP) ([]Prefix, error) {
+	var prefixes []Prefix
 	for _, p := range a.Prefixes {
 		_, ipNet, err := net.ParseCIDR(p.IPPrefix)
 		if err != nil {
 			return nil, err
 		}
 		if ipNet.Contains(ip) {
-			return &p, nil
+			prefixes = append(prefixes, p)
 		}
 	}
 
-	return nil, NewNotInRangeError(ip)
+	if len(prefixes) == 0 {
+		return nil, NewNotInRangeError(ip)
+	}
+
+	return prefixes, nil
 }
 
 type NotInRangeError struct {
