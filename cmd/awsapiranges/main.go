@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -12,77 +13,37 @@ import (
 
 var (
 	cachefile string = "~/.aws/ip-ranges.json"
-	ip        string
-
-	downloadCmd = flag.NewFlagSet("download", flag.ExitOnError)
-	containsCmd = flag.NewFlagSet("contains", flag.ExitOnError)
+	service   string
+	region    string
 )
 
-var subcommands = map[string]*flag.FlagSet{
-	downloadCmd.Name(): downloadCmd,
-	containsCmd.Name(): containsCmd,
-}
-
-// setup flags and usage specific to individual subcommands
-func setupSubcommands() {
-	containsCmd.StringVar(&ip, "ip", "", "IP address to check against AWS ranges")
-	containsCmd.Usage = func() {
-		fmt.Fprint(flag.CommandLine.Output(), "Check whether an IP address is in an AWS range.\n\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags]\n\nFlags:\n", os.Args[0])
-		containsCmd.PrintDefaults()
-	}
-
-	downloadCmd.Usage = func() {
-		fmt.Fprint(flag.CommandLine.Output(), "Download the ip-ranges.json file.\n\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags]\n\nFlags:\n", os.Args[0])
-		downloadCmd.PrintDefaults()
-	}
-}
-
-func setupGlobalFlags() {
-	for _, cmd := range subcommands {
-		cmd.StringVar(&cachefile, "cachefile", cachefile, "Location of the cached ip-ranges.json file")
-	}
-}
 func main() {
-	setupGlobalFlags()
-	setupSubcommands()
+	// slightly better usage output
+	flag.Usage = func() {
+		fmt.Fprint(flag.CommandLine.Output(), "Check whether an IP address is in an AWS range.\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags] [ip]\n\nFlags:\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+	flag.StringVar(&cachefile, "cachefile", cachefile, "Location of the cached ip-ranges.json file")
+	flag.StringVar(&region, "region", "", "Region name to filter on (e.g. us-east-1)")
+	flag.StringVar(&service, "service", "", "Service name to filter on (e.g. EC2)")
+	flag.Parse()
 
-	if len(os.Args) == 1 {
-		log.Fatal("missing subcommand")
+	if flag.NArg() == 0 && region == "" && service == "" {
+		log.Fatal("must provide an IP argument or set the -region or -service flag")
+	}
+	if flag.NArg() > 1 {
+		log.Fatal("unexpected number of args")
 	}
 
-	arg1 := os.Args[1]
-	cmd := subcommands[arg1]
-	if cmd == nil {
-		log.Fatalf("unknown subcommand '%s'", os.Args[1])
-	}
-
-	if len(os.Args) > 2 {
-		cmd.Parse(os.Args[2:])
-	}
-
-	switch arg1 {
-	case downloadCmd.Name():
-		if err := download(); err != nil {
-			log.Fatalf("download: %s", err)
-		}
-	case containsCmd.Name():
+	if ip := flag.Arg(0); ip != "" {
 		if err := contains(ip); err != nil {
-			log.Fatalf("contains: %s", err)
+			log.Fatal(err)
 		}
-	default:
-		log.Fatalf("subcommand not implemented '%s'", arg1)
 	}
-}
-
-func download() error {
-	b, err := awsipranges.Get()
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(cachefile, b, 0644)
+	// TODO filter by region
+	// TODO filter by service
+	// TODO filter by region and service
 }
 
 func contains(s string) error {
@@ -97,6 +58,7 @@ func contains(s string) error {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%+v\n", match)
+	b, _ := json.MarshalIndent(match, "", "  ")
+	fmt.Printf("%s", string(b))
 	return nil
 }
