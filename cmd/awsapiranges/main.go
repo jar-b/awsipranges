@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	cachefile string = "~/.aws/ip-ranges.json"
-	service   string
-	region    string
+	cachefile          string = "~/.aws/ip-ranges.json"
+	networkBorderGroup string
+	region             string
+	service            string
 )
 
 func main() {
@@ -25,12 +26,13 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.StringVar(&cachefile, "cachefile", cachefile, "Location of the cached ip-ranges.json file")
+	flag.StringVar(&networkBorderGroup, "network-border-group", "", "Network border group to filter on (e.g. us-west-2-lax-1)")
 	flag.StringVar(&region, "region", "", "Region name to filter on (e.g. us-east-1)")
 	flag.StringVar(&service, "service", "", "Service name to filter on (e.g. EC2)")
 	flag.Parse()
 
-	if flag.NArg() == 0 && region == "" && service == "" {
-		log.Fatal("must provide an IP argument or set the -region or -service flag")
+	if flag.NArg() == 0 && region == "" && service == "" && networkBorderGroup == "" {
+		log.Fatal("must provide an IP argument or set the -network-border-group, -region, or -service flag")
 	}
 	if flag.NArg() > 1 {
 		log.Fatal("unexpected number of args")
@@ -41,9 +43,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	// TODO filter by region
-	// TODO filter by service
-	// TODO filter by region and service
+	// TODO filter by region, service, network border group
 }
 
 func contains(s string) error {
