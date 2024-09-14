@@ -59,3 +59,77 @@ func TestAWSIPRanges_Contains(t *testing.T) {
 		})
 	}
 }
+
+func TestAWSIPRanges_Filter(t *testing.T) {
+	tests := []struct {
+		name    string
+		ft      FilterType
+		value   string
+		want    []Prefix
+		wantErr bool
+	}{
+		{
+			name:    "invalid",
+			ft:      "invalid",
+			value:   "",
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:  "network border group",
+			ft:    FilterTypeNetworkBorderGroup,
+			value: "us-west-2",
+			want: []Prefix{
+				{
+					IPPrefix:           "52.94.76.0/22",
+					Region:             "us-west-2",
+					Service:            "AMAZON",
+					NetworkBorderGroup: "us-west-2",
+				},
+			},
+		},
+		{
+			name:  "region",
+			ft:    FilterTypeRegion,
+			value: "us-west-2",
+			want: []Prefix{
+				{
+					IPPrefix:           "52.94.76.0/22",
+					Region:             "us-west-2",
+					Service:            "AMAZON",
+					NetworkBorderGroup: "us-west-2",
+				},
+			},
+		},
+		{
+			name:  "service",
+			ft:    FilterTypeService,
+			value: "CODEBUILD",
+			want: []Prefix{
+				{
+					IPPrefix:           "3.101.177.48/29",
+					Region:             "us-west-1",
+					Service:            "CODEBUILD",
+					NetworkBorderGroup: "us-west-1",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a, err := newFromFile("testdata/ip-ranges-test.json")
+			if err != nil {
+				t.Fatalf("reading testdata: %v", err)
+			}
+
+			got, err := a.Filter(tt.ft, tt.value)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AWSIPRanges.Filter() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("AWSIPRanges.Filter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

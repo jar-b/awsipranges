@@ -36,6 +36,14 @@ type IPV6Prefix struct {
 	Service            string `json:"service"`
 }
 
+type FilterType string
+
+const (
+	FilterTypeNetworkBorderGroup FilterType = "network-border-group"
+	FilterTypeRegion             FilterType = "region"
+	FilterTypeService            FilterType = "service"
+)
+
 // Get fetches the latest `ip-ranges.json` file
 func Get() ([]byte, error) {
 	resp, err := http.Get(ipRangesURL)
@@ -79,6 +87,36 @@ func (a *AWSIPRanges) Contains(ip net.IP) ([]Prefix, error) {
 
 	if len(prefixes) == 0 {
 		return nil, NewNotInRangeError(ip)
+	}
+
+	return prefixes, nil
+}
+
+// Filter returns all prefix entries which match the provided filters
+func (a *AWSIPRanges) Filter(ft FilterType, value string) ([]Prefix, error) {
+	var prefixes []Prefix
+
+	switch ft {
+	case FilterTypeNetworkBorderGroup:
+		for _, p := range a.Prefixes {
+			if value == p.NetworkBorderGroup {
+				prefixes = append(prefixes, p)
+			}
+		}
+	case FilterTypeRegion:
+		for _, p := range a.Prefixes {
+			if value == p.Region {
+				prefixes = append(prefixes, p)
+			}
+		}
+	case FilterTypeService:
+		for _, p := range a.Prefixes {
+			if value == p.Service {
+				prefixes = append(prefixes, p)
+			}
+		}
+	default:
+		return nil, fmt.Errorf("invalid filter type")
 	}
 
 	return prefixes, nil
