@@ -63,22 +63,29 @@ func TestAWSIPRanges_Contains(t *testing.T) {
 func TestAWSIPRanges_Filter(t *testing.T) {
 	tests := []struct {
 		name    string
-		ft      FilterType
-		value   string
+		filters []Filter
 		want    []Prefix
 		wantErr bool
 	}{
 		{
-			name:    "invalid",
-			ft:      "invalid",
-			value:   "",
+			name: "invalid",
+			filters: []Filter{
+				{
+					Type:  "invalid",
+					Value: "",
+				},
+			},
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name:  "network border group",
-			ft:    FilterTypeNetworkBorderGroup,
-			value: "us-west-2",
+			name: "network border group",
+			filters: []Filter{
+				{
+					Type:  FilterTypeNetworkBorderGroup,
+					Value: "us-west-2",
+				},
+			},
 			want: []Prefix{
 				{
 					IPPrefix:           "52.94.76.0/22",
@@ -89,9 +96,13 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 			},
 		},
 		{
-			name:  "region",
-			ft:    FilterTypeRegion,
-			value: "us-west-2",
+			name: "region",
+			filters: []Filter{
+				{
+					Type:  FilterTypeRegion,
+					Value: "us-west-2",
+				},
+			},
 			want: []Prefix{
 				{
 					IPPrefix:           "52.94.76.0/22",
@@ -102,9 +113,13 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 			},
 		},
 		{
-			name:  "service",
-			ft:    FilterTypeService,
-			value: "CODEBUILD",
+			name: "service",
+			filters: []Filter{
+				{
+					Type:  FilterTypeService,
+					Value: "CODEBUILD",
+				},
+			},
 			want: []Prefix{
 				{
 					IPPrefix:           "3.101.177.48/29",
@@ -114,6 +129,41 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "all",
+			filters: []Filter{
+				{
+					Type:  FilterTypeService,
+					Value: "CODEBUILD",
+				},
+				{
+					Type:  FilterTypeRegion,
+					Value: "us-west-1",
+				},
+				{
+					Type:  FilterTypeNetworkBorderGroup,
+					Value: "us-west-1",
+				},
+			},
+			want: []Prefix{
+				{
+					IPPrefix:           "3.101.177.48/29",
+					Region:             "us-west-1",
+					Service:            "CODEBUILD",
+					NetworkBorderGroup: "us-west-1",
+				},
+			},
+		},
+		{
+			name: "no match",
+			filters: []Filter{
+				{
+					Type:  FilterTypeRegion,
+					Value: "us-west-99",
+				},
+			},
+			want: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -122,7 +172,7 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 				t.Fatalf("reading testdata: %v", err)
 			}
 
-			got, err := a.Filter(tt.ft, tt.value)
+			got, err := a.Filter(tt.filters)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AWSIPRanges.Filter() error = %v, wantErr %v", err, tt.wantErr)
 				return

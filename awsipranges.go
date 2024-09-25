@@ -44,7 +44,12 @@ const (
 	FilterTypeService            FilterType = "service"
 )
 
-// Get fetches the latest `ip-ranges.json` file
+type Filter struct {
+	Type  FilterType
+	Value string
+}
+
+// Get fetches the latest "ip-ranges.json" file
 func Get() ([]byte, error) {
 	resp, err := http.Get(ipRangesURL)
 	if err != nil {
@@ -55,7 +60,7 @@ func Get() ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-// New fetches the latest `ip-ranges.json` file and parses it
+// New fetches the latest "ip-ranges.json" file and parses it
 func New() (*AWSIPRanges, error) {
 	b, err := Get()
 	if err != nil {
@@ -93,30 +98,32 @@ func (a *AWSIPRanges) Contains(ip net.IP) ([]Prefix, error) {
 }
 
 // Filter returns all prefix entries which match the provided filters
-func (a *AWSIPRanges) Filter(ft FilterType, value string) ([]Prefix, error) {
+func (a *AWSIPRanges) Filter(filters []Filter) ([]Prefix, error) {
 	var prefixes []Prefix
 
-	switch ft {
-	case FilterTypeNetworkBorderGroup:
-		for _, p := range a.Prefixes {
-			if value == p.NetworkBorderGroup {
-				prefixes = append(prefixes, p)
+	for _, p := range a.Prefixes {
+		keep := true
+		for _, f := range filters {
+			switch f.Type {
+			case FilterTypeNetworkBorderGroup:
+				if f.Value != p.NetworkBorderGroup {
+					keep = false
+				}
+			case FilterTypeRegion:
+				if f.Value != p.Region {
+					keep = false
+				}
+			case FilterTypeService:
+				if f.Value != p.Service {
+					keep = false
+				}
+			default:
+				return nil, fmt.Errorf("invalid filter type")
 			}
 		}
-	case FilterTypeRegion:
-		for _, p := range a.Prefixes {
-			if value == p.Region {
-				prefixes = append(prefixes, p)
-			}
+		if keep {
+			prefixes = append(prefixes, p)
 		}
-	case FilterTypeService:
-		for _, p := range a.Prefixes {
-			if value == p.Service {
-				prefixes = append(prefixes, p)
-			}
-		}
-	default:
-		return nil, fmt.Errorf("invalid filter type")
 	}
 
 	return prefixes, nil
