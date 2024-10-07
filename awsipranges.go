@@ -39,6 +39,7 @@ type IPV6Prefix struct {
 type FilterType string
 
 const (
+	FilterTypeIP                 FilterType = "ip"
 	FilterTypeNetworkBorderGroup FilterType = "network-border-group"
 	FilterTypeRegion             FilterType = "region"
 	FilterTypeService            FilterType = "service"
@@ -105,6 +106,17 @@ func (a *AWSIPRanges) Filter(filters []Filter) ([]Prefix, error) {
 		keep := true
 		for _, f := range filters {
 			switch f.Type {
+			case FilterTypeIP:
+				ip := net.ParseIP(f.Value)
+				_, ipNet, err := net.ParseCIDR(p.IPPrefix)
+				if err != nil {
+					// if the IP prefix cannot be parsed, proceed without filtering
+					continue
+				}
+
+				if !ipNet.Contains(ip) {
+					keep = false
+				}
 			case FilterTypeNetworkBorderGroup:
 				if f.Value != p.NetworkBorderGroup {
 					keep = false

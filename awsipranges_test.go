@@ -79,6 +79,23 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "ip",
+			filters: []Filter{
+				{
+					Type:  FilterTypeIP,
+					Value: "52.94.76.1",
+				},
+			},
+			want: []Prefix{
+				{
+					IPPrefix:           "52.94.76.0/22",
+					Region:             "us-west-2",
+					Service:            "AMAZON",
+					NetworkBorderGroup: "us-west-2",
+				},
+			},
+		},
+		{
 			name: "network border group",
 			filters: []Filter{
 				{
@@ -132,6 +149,10 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 		{
 			name: "all",
 			filters: []Filter{
+				{
+					Type:  FilterTypeIP,
+					Value: "3.101.177.48",
+				},
 				{
 					Type:  FilterTypeService,
 					Value: "CODEBUILD",
