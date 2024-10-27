@@ -92,7 +92,7 @@ func (a *AWSIPRanges) Contains(ip net.IP) ([]Prefix, error) {
 	}
 
 	if len(prefixes) == 0 {
-		return nil, NewNotInRangeError(ip)
+		return nil, fmt.Errorf("%s not in AWS IP ranges", ip.String())
 	}
 
 	return prefixes, nil
@@ -139,16 +139,4 @@ func (a *AWSIPRanges) Filter(filters []Filter) ([]Prefix, error) {
 	}
 
 	return prefixes, nil
-}
-
-type NotInRangeError struct {
-	ip net.IP
-}
-
-func (e NotInRangeError) Error() string {
-	return fmt.Sprintf("%s not in AWS IP ranges", e.ip.String())
-}
-
-func NewNotInRangeError(ip net.IP) error {
-	return NotInRangeError{ip: ip}
 }
