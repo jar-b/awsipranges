@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -35,11 +34,42 @@ func main() {
 	flag.StringVar(&service, "service", "", "Service name to filter on (e.g. EC2)")
 	flag.Parse()
 
-	if flag.NArg() == 0 && region == "" && service == "" && networkBorderGroup == "" {
-		log.Fatal("must provide an IP argument or set the -network-border-group, -region, or -service flag")
-	}
 	if flag.NArg() > 1 {
 		log.Fatal("unexpected number of args")
+	}
+
+	var filters []awsipranges.Filter
+
+	if ip := flag.Arg(0); ip != "" {
+		filters = append(filters, awsipranges.Filter{
+			Type:  awsipranges.FilterTypeIP,
+			Value: ip,
+		})
+	}
+
+	if region != "" {
+		filters = append(filters, awsipranges.Filter{
+			Type:  awsipranges.FilterTypeRegion,
+			Value: region,
+		})
+	}
+
+	if service != "" {
+		filters = append(filters, awsipranges.Filter{
+			Type:  awsipranges.FilterTypeService,
+			Value: service,
+		})
+	}
+
+	if networkBorderGroup != "" {
+		filters = append(filters, awsipranges.Filter{
+			Type:  awsipranges.FilterTypeNetworkBorderGroup,
+			Value: networkBorderGroup,
+		})
+	}
+
+	if len(filters) == 0 {
+		log.Fatal("must provide an IP argument or set the -network-border-group, -region, or -service flag")
 	}
 
 	ranges, err := loadRanges()
@@ -47,13 +77,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if ip := flag.Arg(0); ip != "" {
-		if err := contains(ranges, ip); err != nil {
-			log.Fatal(err)
-		}
+	if err := filter(ranges, filters); err != nil {
+		log.Fatal(err)
 	}
-
-	// TODO filter by region, service, network border group
 }
 
 // defaultCachefilePath constructs a default path to the cachefile
@@ -91,13 +117,13 @@ func loadRanges() (*awsipranges.AWSIPRanges, error) {
 	return &ranges, nil
 }
 
-func contains(ranges *awsipranges.AWSIPRanges, s string) error {
-	match, err := ranges.Contains(net.ParseIP(s))
+func filter(ranges *awsipranges.AWSIPRanges, filters []awsipranges.Filter) error {
+	matches, err := ranges.Filter(filters)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	b, _ := json.MarshalIndent(match, "", "  ")
+	b, _ := json.MarshalIndent(matches, "", "  ")
 	fmt.Printf("%s", string(b))
 	return nil
 }
