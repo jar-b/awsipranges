@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"text/tabwriter"
 
 	"github.com/jar-b/awsipranges"
 )
@@ -77,9 +78,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := filter(ranges, filters); err != nil {
+	matches, err := ranges.Filter(filters)
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	write(matches)
 }
 
 // defaultCachefilePath constructs a default path to the cachefile
@@ -117,13 +121,17 @@ func loadRanges() (*awsipranges.AWSIPRanges, error) {
 	return &ranges, nil
 }
 
-func filter(ranges *awsipranges.AWSIPRanges, filters []awsipranges.Filter) error {
-	matches, err := ranges.Filter(filters)
-	if err != nil {
-		log.Fatal(err)
+func write(matches []awsipranges.Prefix) {
+	if len(matches) == 0 {
+		fmt.Println("No matches found.")
+		return
 	}
 
-	b, _ := json.MarshalIndent(matches, "", "  ")
-	fmt.Printf("%s", string(b))
-	return nil
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
+	fmt.Fprintln(w, "\tIP Prefix\tRegion\tNetwork Border Group\tService\t")
+	fmt.Fprintln(w, "\t---------\t------\t--------------------\t-------\t")
+	for _, m := range matches {
+		fmt.Fprintf(w, "\t%s\t%s\t%s\t%s\t\n", m.IPPrefix, m.Region, m.NetworkBorderGroup, m.Service)
+	}
+	w.Flush()
 }
