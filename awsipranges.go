@@ -76,28 +76,6 @@ func New() (*AWSIPRanges, error) {
 	return &ranges, nil
 }
 
-// Contains returns all prefix entries which contain the provided IP
-//
-// Multiple entries in the source data set may match a single IP.
-func (a *AWSIPRanges) Contains(ip net.IP) ([]Prefix, error) {
-	var prefixes []Prefix
-	for _, p := range a.Prefixes {
-		_, ipNet, err := net.ParseCIDR(p.IPPrefix)
-		if err != nil {
-			return nil, err
-		}
-		if ipNet.Contains(ip) {
-			prefixes = append(prefixes, p)
-		}
-	}
-
-	if len(prefixes) == 0 {
-		return nil, fmt.Errorf("%s not in AWS IP ranges", ip.String())
-	}
-
-	return prefixes, nil
-}
-
 // Filter returns all prefix entries which match the provided filters
 func (a *AWSIPRanges) Filter(filters []Filter) ([]Prefix, error) {
 	var prefixes []Prefix
