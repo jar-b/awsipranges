@@ -1,3 +1,4 @@
+// Package awsipranges provides helpers for working with public AWS IP range data
 package awsipranges
 
 import (
@@ -12,7 +13,8 @@ const ipRangesURL = "https://ip-ranges.amazonaws.com/ip-ranges.json"
 
 // AWSIPRanges stores the content from `ip-ranges.json`
 //
-// Ref: https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-work-with.html
+// See the AWS documentation for additional details:
+// - https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-work-with.html
 type AWSIPRanges struct {
 	SyncToken    string       `json:"syncToken"`
 	CreateDate   string       `json:"createDate"`
@@ -36,6 +38,11 @@ type IPV6Prefix struct {
 	Service            string `json:"service"`
 }
 
+// FilterType is the type of filter to apply while iterating over IP range
+// data
+//
+// Filtering can be done on IP address, network border group, region, and
+// service.
 type FilterType string
 
 const (
@@ -45,12 +52,13 @@ const (
 	FilterTypeService            FilterType = "service"
 )
 
+// Filter stores the filter type and value used to filter results
 type Filter struct {
 	Type  FilterType
 	Value string
 }
 
-// Get fetches the latest "ip-ranges.json" file
+// Get returns the content from the latest "ip-ranges.json" file
 func Get() ([]byte, error) {
 	resp, err := http.Get(ipRangesURL)
 	if err != nil {
