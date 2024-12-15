@@ -18,6 +18,3 @@ lint: ## Lint source code
 
 test: ## Run unit tests
 	@go test -v -coverprofile=coverage.txt ./...
-
-tidy: ## Tidy cmd module
-	@cd cmd/awsipranges && go mod tidy
