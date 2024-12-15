@@ -2,7 +2,11 @@
 
 Helpers for working with public AWS IP range data.
 
+Inspired by a much better existing version of this tool, [cmlccie/awsipranges](https://github.com/cmlccie/awsipranges), but written as a Go library for some eventual use cases that would require it.
+
 ## CLI
+
+Originally this was only going to be a library, but a basic main function was helpful for testing and morphed into a simple CLI.
 
 ### Installation
 
