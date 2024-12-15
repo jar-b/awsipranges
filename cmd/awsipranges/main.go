@@ -9,17 +9,27 @@ import (
 	"os/user"
 	"path/filepath"
 	"text/tabwriter"
+	"time"
 
 	"github.com/jar-b/awsipranges"
 )
 
-const cachefilePath = ".aws/ip-ranges.json"
+const (
+	cachefilePath = ".aws/ip-ranges.json"
+
+	// createDateFormat is the format of the `createDate` field in the
+	// underlying JSON (YY-MM-DD-hh-mm-ss)
+	//
+	// Ref: https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-syntax.html
+	createDateFormat = "2006-01-02-15-04-05"
+)
 
 var (
 	cachefile          string
 	networkBorderGroup string
 	region             string
 	service            string
+	expiration         string
 )
 
 func main() {
@@ -30,13 +40,14 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.StringVar(&cachefile, "cachefile", defaultCachefilePath(), "Location of the cached ip-ranges.json file")
+	flag.StringVar(&expiration, "expiration", "", "Duration after which the cached ranges file should be replaced")
 	flag.StringVar(&networkBorderGroup, "network-border-group", "", "Network border group to filter on (e.g. us-west-2-lax-1)")
 	flag.StringVar(&region, "region", "", "Region name to filter on (e.g. us-east-1)")
 	flag.StringVar(&service, "service", "", "Service name to filter on (e.g. EC2)")
 	flag.Parse()
 
 	if flag.NArg() > 1 {
-		log.Fatal("unexpected number of args")
+		log.Fatal("unexpected number of arguments")
 	}
 
 	var filters []awsipranges.Filter
@@ -92,6 +103,32 @@ func defaultCachefilePath() string {
 	return filepath.Join(u.HomeDir, cachefilePath)
 }
 
+// isExpired checks whether the createDate of a cached ip-ranges.json
+// file is older than the configured expiration duration
+//
+// If expiration is not set, always returns false.
+func isExpired(createDate string) (bool, error) {
+	if expiration == "" {
+		return false, nil
+	}
+
+	created, err := time.Parse(createDateFormat, createDate)
+	if err != nil {
+		return false, err
+	}
+	expirationDuration, err := time.ParseDuration(expiration)
+	if err != nil {
+		return false, err
+	}
+
+	if expirationDuration > time.Since(created) {
+		return false, nil
+	}
+
+	fmt.Println("Cache is expired, refreshing")
+	return true, nil
+}
+
 // loadRanges attempts to read ip-ranges data from cache, falling back
 // to fetching the source file if os.ReadFile fails or the creation date
 // exceeds the configured cache expiration time
@@ -99,8 +136,11 @@ func loadRanges() (*awsipranges.AWSIPRanges, error) {
 	if b, err := os.ReadFile(cachefile); err == nil {
 		var ranges awsipranges.AWSIPRanges
 		if err := json.Unmarshal(b, &ranges); err == nil {
-			// TODO: check configured expiration time
-			return &ranges, nil
+			if exp, err := isExpired(ranges.CreateDate); err != nil {
+				return nil, err
+			} else if !exp {
+				return &ranges, nil
+			}
 		}
 	}
 

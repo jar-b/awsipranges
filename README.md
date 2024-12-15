@@ -23,6 +23,8 @@ Usage: awsipranges [flags] [ip]
 Flags:
   -cachefile string
         Location of the cached ip-ranges.json file (default "~/.aws/ip-ranges.json")
+  -expiration string
+        Duration after which the cached ranges file should be replaced
   -network-border-group string
         Network border group to filter on (e.g. us-west-2-lax-1)
   -region string
