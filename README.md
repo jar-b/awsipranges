@@ -8,13 +8,13 @@ Helpers for working with public AWS IP range data.
 
 Via `go install`:
 
-```sh
+```console
 go install github.com/jar-b/awsipranges/cmd/awsipranges@latest
 ```
 
 ### Usage
 
-```
+```console
 % awsipranges -h
 Check whether an IP address is in an AWS range.
 
@@ -33,24 +33,40 @@ Flags:
         Service name to filter on (e.g. EC2)
 ```
 
+The output of a filtered query is printed as a table:
+
+```console
+% awsipranges 52.119.252.5
+ |IP Prefix       |Region    |Network Border Group |Service  |
+ |---------       |------    |-------------------- |-------  |
+ |52.119.252.0/22 |us-west-2 |us-west-2            |AMAZON   |
+ |52.119.252.0/22 |us-west-2 |us-west-2            |DYNAMODB |
+```
+
 ### Examples
 
-Check for a specific IP:
+Search for the range of a specific IP address:
 
-```sh
+```console
 awsipranges 52.119.252.5
 ```
 
 List IP ranges for a region:
 
-```sh
+```console
 awsipranges -region=us-west-2
 ```
 
 List IP ranges for a service within a region:
 
-```sh
+```console
 awsipranges -region=us-west-2 -service=DYNAMODB
+```
+
+Set the cachefile to expire after `240` hours (10 days):
+
+```console
+awsipranges -expiration=240h 52.119.252.5
 ```
 
 ## Library
