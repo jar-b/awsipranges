@@ -4,6 +4,4 @@ go 1.23
 
 toolchain go1.23.0
 
-replace github.com/jar-b/awsipranges => ../..
-
-require github.com/jar-b/awsipranges v0.0.0-00010101000000-000000000000
+require github.com/jar-b/awsipranges v0.0.0-20241215155746-34b98e8b50d5
