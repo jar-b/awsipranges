@@ -1,4 +1,4 @@
-module github.com/jar-b/awsipranges/cmd/awsapiranges
+module github.com/jar-b/awsipranges/cmd/awsipranges
 
 go 1.23
 
