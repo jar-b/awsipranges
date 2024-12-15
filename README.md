@@ -4,6 +4,40 @@ Helpers for working with public AWS IP range data.
 
 Inspired by a much better existing version of this tool, [cmlccie/awsipranges](https://github.com/cmlccie/awsipranges), but written as a Go library for some eventual use cases that would require it.
 
+## Library
+
+`import github.com/jar-b/awsipranges`
+
+### Usage
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/jar-b/awsipranges"
+)
+
+func main() {
+	ranges, _ := awsipranges.New()
+
+	filters := []awsipranges.Filter{
+		{
+			Type:  awsipranges.FilterTypeRegion,
+			Value: "us-west-2",
+		},
+		{
+			Type:  awsipranges.FilterTypeService,
+			Value: "S3",
+		},
+	}
+
+	result, _ := ranges.Filter(filters)
+	fmt.Println(result)
+}
+```
+
 ## CLI
 
 Originally this was only going to be a library, but a basic main function was helpful for testing and morphed into a simple CLI.
@@ -72,11 +106,3 @@ Set the cachefile to expire after `240` hours (10 days):
 ```console
 awsipranges -expiration=240h 52.119.252.5
 ```
-
-## Library
-
-`import github.com/jar-b/awsipranges`
-
-### Usage
-
-_TODO_
