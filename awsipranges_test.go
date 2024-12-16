@@ -75,6 +75,23 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 			},
 		},
 		{
+			name: "network border group (case insensitive)",
+			filters: []Filter{
+				{
+					Type:  FilterTypeNetworkBorderGroup,
+					Value: "Us-West-2",
+				},
+			},
+			want: []Prefix{
+				{
+					IPPrefix:           "52.94.76.0/22",
+					Region:             "us-west-2",
+					Service:            "AMAZON",
+					NetworkBorderGroup: "us-west-2",
+				},
+			},
+		},
+		{
 			name: "region",
 			filters: []Filter{
 				{
@@ -92,11 +109,45 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 			},
 		},
 		{
+			name: "region (case insensitive)",
+			filters: []Filter{
+				{
+					Type:  FilterTypeRegion,
+					Value: "Us-West-2",
+				},
+			},
+			want: []Prefix{
+				{
+					IPPrefix:           "52.94.76.0/22",
+					Region:             "us-west-2",
+					Service:            "AMAZON",
+					NetworkBorderGroup: "us-west-2",
+				},
+			},
+		},
+		{
 			name: "service",
 			filters: []Filter{
 				{
 					Type:  FilterTypeService,
 					Value: "CODEBUILD",
+				},
+			},
+			want: []Prefix{
+				{
+					IPPrefix:           "3.101.177.48/29",
+					Region:             "us-west-1",
+					Service:            "CODEBUILD",
+					NetworkBorderGroup: "us-west-1",
+				},
+			},
+		},
+		{
+			name: "service (case insensitive)",
+			filters: []Filter{
+				{
+					Type:  FilterTypeService,
+					Value: "codebuild",
 				},
 			},
 			want: []Prefix{

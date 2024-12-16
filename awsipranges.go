@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strings"
 )
 
 const ipRangesURL = "https://ip-ranges.amazonaws.com/ip-ranges.json"
@@ -104,15 +105,15 @@ func (a *AWSIPRanges) Filter(filters []Filter) ([]Prefix, error) {
 					keep = false
 				}
 			case FilterTypeNetworkBorderGroup:
-				if f.Value != p.NetworkBorderGroup {
+				if !strings.EqualFold(f.Value, p.NetworkBorderGroup) {
 					keep = false
 				}
 			case FilterTypeRegion:
-				if f.Value != p.Region {
+				if !strings.EqualFold(f.Value, p.Region) {
 					keep = false
 				}
 			case FilterTypeService:
-				if f.Value != p.Service {
+				if !strings.EqualFold(f.Value, p.Service) {
 					keep = false
 				}
 			default:
