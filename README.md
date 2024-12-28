@@ -1,4 +1,6 @@
 # awsipranges
+[![build](https://github.com/jar-b/awsipranges/actions/workflows/build.yml/badge.svg)](https://github.com/jar-b/awsipranges/actions/workflows/build.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jar-b/awsipranges.svg)](https://pkg.go.dev/github.com/jar-b/awsipranges)
 
 Helpers for working with public AWS IP range data.
 
