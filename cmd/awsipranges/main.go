@@ -37,7 +37,7 @@ func main() {
 	// slightly better usage output
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "Check whether an IP address is in an AWS range.\n\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags] [ip]\n\nFlags:\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags]\n\nFlags:\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.StringVar(&cachefile, "cachefile", defaultCachefilePath(), "Location of the cached ip-ranges.json file")

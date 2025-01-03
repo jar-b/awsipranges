@@ -58,13 +58,15 @@ go install github.com/jar-b/awsipranges/cmd/awsipranges@latest
 % awsipranges -h
 Check whether an IP address is in an AWS range.
 
-Usage: awsipranges [flags] [ip]
+Usage: awsipranges [flags]
 
 Flags:
   -cachefile string
         Location of the cached ip-ranges.json file (default "~/.aws/ip-ranges.json")
   -expiration string
         Duration after which the cached ranges file should be replaced
+  -ip string
+        IP address to filter on (e.g. 1.2.3.4)
   -network-border-group string
         Network border group to filter on (e.g. us-west-2-lax-1)
   -region string
@@ -76,7 +78,7 @@ Flags:
 The output of a filtered query is printed as a table:
 
 ```console
-% awsipranges 52.119.252.5
+% awsipranges -ip 52.119.252.5
  |IP Prefix       |Region    |Network Border Group |Service  |
  |---------       |------    |-------------------- |-------  |
  |52.119.252.0/22 |us-west-2 |us-west-2            |AMAZON   |
@@ -88,7 +90,7 @@ The output of a filtered query is printed as a table:
 Search for the range of a specific IP address:
 
 ```console
-awsipranges 52.119.252.5
+awsipranges -ip 52.119.252.5
 ```
 
 List IP ranges for a region:

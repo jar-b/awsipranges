@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.7
+
+### Fixed
+- `cli`: Fix usage and examples filtering on IP address
+
 ## v0.0.6
 
 ### Fixed
