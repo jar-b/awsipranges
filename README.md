@@ -108,5 +108,5 @@ awsipranges -region=us-west-2 -service=DYNAMODB
 Set the cachefile to expire after `240` hours (10 days):
 
 ```console
-awsipranges -expiration=240h 52.119.252.5
+awsipranges -ip 52.119.252.5 -expiration=240h
 ```
