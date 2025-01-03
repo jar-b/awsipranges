@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -53,10 +54,10 @@ const (
 	FilterTypeService            FilterType = "service"
 )
 
-// Filter stores the filter type and value used to filter results
+// Filter stores the filter type and values used to filter results
 type Filter struct {
-	Type  FilterType
-	Value string
+	Type   FilterType
+	Values []string
 }
 
 // Get returns the content from the latest "ip-ranges.json" file
@@ -94,32 +95,33 @@ func (a *AWSIPRanges) Filter(filters []Filter) ([]Prefix, error) {
 		for _, f := range filters {
 			switch f.Type {
 			case FilterTypeIP:
-				ip := net.ParseIP(f.Value)
-				_, ipNet, err := net.ParseCIDR(p.IPPrefix)
-				if err != nil {
-					// if the IP prefix cannot be parsed, proceed without filtering
-					continue
-				}
+				keep = slices.ContainsFunc(f.Values, func(e string) bool {
+					ip := net.ParseIP(e)
+					_, ipNet, err := net.ParseCIDR(p.IPPrefix)
+					if err != nil {
+						// if the IP prefix cannot be parsed, proceed without filtering
+						return keep
+					}
 
-				if !ipNet.Contains(ip) {
-					keep = false
-				}
+					return ipNet.Contains(ip)
+				})
 			case FilterTypeNetworkBorderGroup:
-				if !strings.EqualFold(f.Value, p.NetworkBorderGroup) {
-					keep = false
-				}
+				keep = slices.ContainsFunc(f.Values, func(e string) bool {
+					return strings.EqualFold(e, p.NetworkBorderGroup)
+				})
 			case FilterTypeRegion:
-				if !strings.EqualFold(f.Value, p.Region) {
-					keep = false
-				}
+				keep = slices.ContainsFunc(f.Values, func(e string) bool {
+					return strings.EqualFold(e, p.Region)
+				})
 			case FilterTypeService:
-				if !strings.EqualFold(f.Value, p.Service) {
-					keep = false
-				}
+				keep = slices.ContainsFunc(f.Values, func(e string) bool {
+					return strings.EqualFold(e, p.Service)
+				})
 			default:
 				return nil, fmt.Errorf("invalid filter type")
 			}
 		}
+
 		if keep {
 			prefixes = append(prefixes, p)
 		}

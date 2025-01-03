@@ -27,11 +27,11 @@ func main() {
 	filters := []awsipranges.Filter{
 		{
 			Type:  awsipranges.FilterTypeRegion,
-			Value: "us-west-2",
+			Values: []string{"us-west-2"},
 		},
 		{
 			Type:  awsipranges.FilterTypeService,
-			Value: "S3",
+			Values: []string{"S3"},
 		},
 	}
 

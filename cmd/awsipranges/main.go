@@ -54,29 +54,29 @@ func main() {
 
 	if ip := flag.Arg(0); ip != "" {
 		filters = append(filters, awsipranges.Filter{
-			Type:  awsipranges.FilterTypeIP,
-			Value: ip,
+			Type:   awsipranges.FilterTypeIP,
+			Values: []string{ip},
 		})
 	}
 
 	if region != "" {
 		filters = append(filters, awsipranges.Filter{
-			Type:  awsipranges.FilterTypeRegion,
-			Value: region,
+			Type:   awsipranges.FilterTypeRegion,
+			Values: []string{region},
 		})
 	}
 
 	if service != "" {
 		filters = append(filters, awsipranges.Filter{
-			Type:  awsipranges.FilterTypeService,
-			Value: service,
+			Type:   awsipranges.FilterTypeService,
+			Values: []string{service},
 		})
 	}
 
 	if networkBorderGroup != "" {
 		filters = append(filters, awsipranges.Filter{
-			Type:  awsipranges.FilterTypeNetworkBorderGroup,
-			Value: networkBorderGroup,
+			Type:   awsipranges.FilterTypeNetworkBorderGroup,
+			Values: []string{networkBorderGroup},
 		})
 	}
 
