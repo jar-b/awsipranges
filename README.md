@@ -42,7 +42,7 @@ func main() {
 
 ## CLI
 
-Originally this was only going to be a library, but a basic main function was helpful for testing and morphed into a simple CLI.
+Originally this was only going to be a library, but a basic main function was helpful for testing and became a simple CLI.
 
 ### Installation
 
