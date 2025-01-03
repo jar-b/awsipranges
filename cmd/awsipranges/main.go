@@ -26,6 +26,7 @@ const (
 
 var (
 	cachefile          string
+	ip                 string
 	networkBorderGroup string
 	region             string
 	service            string
@@ -41,18 +42,19 @@ func main() {
 	}
 	flag.StringVar(&cachefile, "cachefile", defaultCachefilePath(), "Location of the cached ip-ranges.json file")
 	flag.StringVar(&expiration, "expiration", "", "Duration after which the cached ranges file should be replaced")
+	flag.StringVar(&ip, "ip", "", "IP address to filter on (e.g. 1.2.3.4)")
 	flag.StringVar(&networkBorderGroup, "network-border-group", "", "Network border group to filter on (e.g. us-west-2-lax-1)")
 	flag.StringVar(&region, "region", "", "Region name to filter on (e.g. us-east-1)")
 	flag.StringVar(&service, "service", "", "Service name to filter on (e.g. EC2)")
 	flag.Parse()
 
-	if flag.NArg() > 1 {
+	if flag.NArg() > 0 {
 		log.Fatal("unexpected number of arguments")
 	}
 
 	var filters []awsipranges.Filter
 
-	if ip := flag.Arg(0); ip != "" {
+	if ip != "" {
 		filters = append(filters, awsipranges.Filter{
 			Type:   awsipranges.FilterTypeIP,
 			Values: []string{ip},

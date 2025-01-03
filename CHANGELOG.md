@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.5
+
+### Changed
+- `cli`: IP address is now passed as a flag (`-ip`) for consistency with other filters
+
 ## v0.0.4
 
 ### Changed
