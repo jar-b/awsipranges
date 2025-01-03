@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.6
+
+### Fixed
+- Properly omit items when one filter matches but another does not
+
 ## v0.0.5
 
 ### Changed

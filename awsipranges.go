@@ -120,6 +120,11 @@ func (a *AWSIPRanges) Filter(filters []Filter) ([]Prefix, error) {
 			default:
 				return nil, fmt.Errorf("invalid filter type")
 			}
+
+			// Stop iterating filters if an attempted match misses
+			if !keep {
+				break
+			}
 		}
 
 		if keep {

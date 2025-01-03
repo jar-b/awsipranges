@@ -212,6 +212,24 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 			},
 		},
 		{
+			// verifies that a miss on any filter, regardless of matches in
+			// subsequent or previous filters should cause the item to be omitted
+			name: "match negation",
+			filters: []Filter{
+				// matches an item in us-west-2
+				{
+					Type:   FilterTypeIP,
+					Values: []string{"52.94.76.1"},
+				},
+				// negates the match
+				{
+					Type:   FilterTypeRegion,
+					Values: []string{"us-east-1"},
+				},
+			},
+			want: nil,
+		},
+		{
 			name: "no match",
 			filters: []Filter{
 				{
