@@ -223,14 +223,14 @@ func TestAWSIPRanges_Filter(t *testing.T) {
 		},
 	}
 
+	ranges, err := newFromFile("testdata/ip-ranges-test.json")
+	if err != nil {
+		t.Fatalf("reading testdata: %v", err)
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := newFromFile("testdata/ip-ranges-test.json")
-			if err != nil {
-				t.Fatalf("reading testdata: %v", err)
-			}
-
-			got, err := a.Filter(tt.filters)
+			got, err := ranges.Filter(tt.filters)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AWSIPRanges.Filter() error = %v, wantErr %v", err, tt.wantErr)
 				return
